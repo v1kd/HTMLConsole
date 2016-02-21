@@ -1,0 +1,74 @@
+<html>
+    <head>
+        <title>Console Test</title>
+        <link rel="stylesheet" href="console.css">
+    </head>
+    <body>
+        <div>
+            <button id="clear">Clear</button>
+        </div>
+        <div class="console"></div>
+        <script src="console.js"></script>
+        <script>
+        var z = {
+          x: 'hello',
+          y: 'shdf shdf'
+        }
+        var x = undefined
+        var z = null
+
+        function Something() {};
+        var some = new Something();
+        c.log('Here comes a string')
+        c.log('this is a string');
+        c.log('Here is a number');
+        c.log(23)
+        c.log('true && false')
+        c.log(true && false)
+        c.log('This is a function');
+        c.log(Something)
+        c.log('This is an object created from function `Something`')
+        c.log(some)
+        c.log('Yay an array')
+        c.log([1, 2, {
+          x: 3,
+          func: function Hello() {}
+        }])
+        c.log('You are logging an Object')
+        c.log({
+          i: 23,
+          j: 34,
+          z: function() {}
+        })
+        c.log('Not defined (undefined)')
+        c.log(undefined)
+        document.querySelector('#clear').addEventListener('click', function() {
+          c.clear();
+        })
+        c.log('The lord of the errors: NULL')
+        c.log(null)
+        c.log('A complex object')
+        c.log({
+          a: 12,
+          b: true,
+          c: false,
+          d: [{
+            a: 'String',
+            func: function getA() {
+              return this.a;
+            },
+            nullAttr: null,
+            undef: undefined
+          }]
+        })
+        c.log('Not a number')
+        c.log(parseInt('hello'))
+        c.log('The warning')
+        c.warn('Warning')
+        c.log('The info')
+        c.log('Information')
+        c.log('And the bug')
+        c.debug('Debugging.......')
+        </script>
+    </body>
+</html>

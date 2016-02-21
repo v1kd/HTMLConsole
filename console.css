@@ -1,0 +1,61 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.console {
+  margin: 0;
+  font-size: 12px;
+  font-family: 'Consolas', 'Menlo', 'Courier new';
+}
+
+.console > div {
+  padding: 4px 8px;
+  border-top: 1px solid #CFD6D9;
+}
+
+.console > div:last-child {
+  border-bottom: 1px solid #CFD6D9;
+}
+
+.console .string {
+  color: #249D7F;
+}
+
+.console .number {
+  color: #ED5C65;
+}
+
+.console .function > .keyword {
+  color: #A151D2;
+}
+
+.console .function > .name {
+  color: #000;
+}
+
+.console .object > .key {
+  color: #000;
+}
+
+.console .object > .constructor {
+  color: #F1A244;
+}
+
+.console .undefined {
+  color: #3424A0;
+}
+
+.console .null {
+  color: #3424A0;
+}
+
+.console .boolean {
+  color: #3424A0;
+}
+
+.console .warn {}
+
+.console .info {}
+
+.console .debug {}
