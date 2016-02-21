@@ -32,6 +32,32 @@ var c = (function() {
           }
           break;
         }
+        // check if html element
+        if (obj instanceof HTMLElement) {
+          var htmlAttrs = obj.attributes;
+          var attrs = [];
+          if (htmlAttrs && htmlAttrs.length > 0) {
+            for (var i = 0; i < htmlAttrs.length; i++) {
+              attrs.push({
+                key: htmlAttrs[i].nodeName,
+                value: {
+                  dataType: 'string',
+                  data: htmlAttrs[i].nodeValue
+                }
+              });
+            }
+          }
+
+          op = {
+            data: {
+              tagName: obj.tagName ? obj.tagName.toLowerCase() : '',
+              attrs: attrs
+            },
+            dataType: 'html'
+          };
+          console.log(attrs)
+          break;
+        }
         // if array - doesnt work for all of them - function arguments
         if (typeof obj.length === 'number' && typeof obj.splice === 'function') {
           op = {
@@ -48,11 +74,7 @@ var c = (function() {
           dataType: 'object',
           constructor: 'Object'
         };
-        // object
-        if (callStack >= 10) {
-          // stop the process
-          break;
-        }
+        
         var constructor = obj.constructor;
         if (typeof constructor === 'function' && constructor.name) {
           op.constructor = constructor.name;
@@ -85,7 +107,17 @@ var c = (function() {
         outer.textContent = obj.data;
         break;
       case 'string':
-        outer.textContent = '"' + obj.data + '"';
+        span = document.createElement('span');
+        span.textContent = '"';
+        outer.appendChild(span);
+        span = document.createElement('span');
+        span.classList.add('value');
+        span.textContent = obj.data;
+        outer.appendChild(span)
+        span = document.createElement('span');
+        span.textContent = '"';
+        outer.appendChild(span);
+        // outer.textContent = '"' + obj.data + '"';
         break;
       case 'function':
         var span = document.createElement('span');
@@ -145,6 +177,44 @@ var c = (function() {
         }
         span = document.createElement('span');
         span.textContent = ']';
+        outer.appendChild(span);
+        break;
+      case 'html':
+        var span = document.createElement('span');
+        span.textContent = '<';
+        outer.appendChild(span);
+        span = document.createElement('span');
+        span.classList.add('tag');
+        outer.appendChild(span);
+        span.textContent = obj.data.tagName;
+        // attribures
+        var attrs = obj.data.attrs;
+        console.log(attrs)
+        if (attrs && attrs.length > 0) {
+          for (var i = 0; i < attrs.length; i++) {
+            span = document.createElement('span');
+            span.classList.add('key');
+            span.textContent = ' ' + attrs[i].key;
+            outer.appendChild(span);
+            span = document.createElement('span');
+            span.textContent = '=';
+            outer.appendChild(span);
+            outer.appendChild(getDOMRepr(attrs[i].value));
+          }
+        }
+        span = document.createElement('span');
+        span.textContent = '>';
+        outer.appendChild(span);
+        // closing tag
+        span = document.createElement('span');
+        span.textContent = '</';
+        outer.appendChild(span);
+        span = document.createElement('span');
+        span.textContent = obj.data.tagName;
+        span.classList.add('tag');
+        outer.appendChild(span);
+        span = document.createElement('span');
+        span.textContent = '>';
         outer.appendChild(span);
         break;
     }

@@ -3,7 +3,9 @@
         <title>Console Test</title>
         <link rel="stylesheet" href="console.css">
     </head>
-    <body>
+    <body onload="function function_name(argument) {
+        // body...
+    }" class="body" id="body">
         <div>
             <button id="clear">Clear</button>
         </div>
@@ -23,7 +25,7 @@
         c.log('this is a string');
         c.log('Here is a number');
         c.log(23)
-        c.log('true && false')
+        c.log('true && false:')
         c.log(true && false)
         c.log('This is a function');
         c.log(Something)
@@ -69,6 +71,7 @@
         c.log('Information')
         c.log('And the bug')
         c.debug('Debugging.......')
+        c.log(document.body)
         </script>
     </body>
 </html>
