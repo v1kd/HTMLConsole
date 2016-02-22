@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
     <head>
         <title>Console Test</title>
@@ -12,6 +13,11 @@
         <div class="console"></div>
         <script src="console.js"></script>
         <script>
+        // to clear the console log
+        document.querySelector('#clear').addEventListener('click', function() {
+          c.clear();
+        })
+
         var z = {
           x: 'hello',
           y: 'shdf shdf'
@@ -21,35 +27,50 @@
 
         function Something() {};
         var some = new Something();
-        c.log('Here comes a string:')
+        c.log('>> Here comes a string:')
         c.log('this is a string');
-        c.log('Here is a number');
+        c.break()
+
+        c.log('>> Here is a number');
         c.log(23)
-        c.log('true && false:')
+        c.break()
+
+        c.log('>> true && false:')
         c.log(true && false)
-        c.log('This is a function');
+        c.break()
+
+        c.log('>> This is a function');
         c.log(Something)
-        c.log('This is an object created from function `Something`')
+        c.break()
+
+        c.log('>> This is an object created from function `Something`')
         c.log(some)
-        c.log('Yay an array')
+        c.break()
+
+        c.log('>> Yay an array')
         c.log([1, 2, {
           x: 3,
           func: function Hello() {}
         }])
-        c.log('You are logging an Object')
+        c.break()
+
+        c.log('>> You are logging an Object')
         c.log({
           i: 23,
           j: 34,
           z: function() {}
         })
-        c.log('Not defined (undefined)')
+        c.break()
+
+        c.log('>> Not defined (undefined)')
         c.log(undefined)
-        document.querySelector('#clear').addEventListener('click', function() {
-          c.clear();
-        })
-        c.log('The lord of the errors: NULL')
+        c.break()
+
+        c.log('>> The lord of the errors: NULL')
         c.log(null)
-        c.log('A complex object')
+        c.break()
+
+        c.log('>> A complex object')
         c.log({
           a: 12,
           b: true,
@@ -63,15 +84,23 @@
             undef: undefined
           }]
         })
-        c.log('Not a number')
-        c.log(parseInt('hello'))
-        c.log('The warning')
-        c.warn('Warning')
-        c.log('The info')
-        c.log('Information')
-        c.log('And the bug')
-        c.debug('Debugging.......')
+        c.break()
+
+        c.log('>> HTML object')
         c.log(document.body)
+        c.break()
+
+        c.log('>> Not a number')
+        c.log(parseInt('hello'))
+        c.break()
+
+        c.log('>> warning')
+        c.warn('Warning')
+        c.break()
+
+        c.log('>> Degugging')
+        c.debug('Debugging.......')
+        
         </script>
     </body>
 </html>

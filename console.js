@@ -122,7 +122,7 @@ var c = (function() {
     var domType = 'div'
     if (!isRoot)
       domType = 'span'
-    var outer = document.createElement(domType);
+    var outer = getDOM({ 'tag': domType });
     outer.classList.add(obj.dataType);
     switch (obj.dataType) {
       case 'number':
@@ -158,7 +158,6 @@ var c = (function() {
           if (isStart) {
             isStart = false;
           } else {
-            // append a ,
             outer.appendChild(getDOM({ text: ', ' }));
           }
           outer.appendChild(getDOM({
@@ -170,94 +169,52 @@ var c = (function() {
         }
         outer.appendChild(getDOM({ text: '}' }));
         break;
-        /*var span = document.createElement('span');
-        span.textContent = obj.constructor + ' '
-        span.classList.add('constructor')
-        outer.appendChild(span)
-        var span = document.createElement('span');
-        span.textContent = '{'
-        outer.appendChild(span);
-        var isStart = true;
-        for (var i in obj.data) {
-          if (isStart) {
-            isStart = false;
-          } else {
-            // append a ,
-            span = document.createElement('span');
-            span.textContent = ', '
-            outer.appendChild(span);
-          }
-          span = document.createElement('span');
-          span.textContent = i
-          span.classList.add('key')
-          outer.appendChild(span);
-          span = document.createElement('span');
-          span.textContent = ': '
-          outer.appendChild(span)
-          outer.appendChild(getDOMRepr(obj.data[i]), false)
-        }
-        span = document.createElement('span');
-        span.textContent = '}';
-        outer.appendChild(span);
-        break;*/
+      // array object
       case 'array':
-        var span = document.createElement('span');
-        span.textContent = '['
-        outer.appendChild(span);
+        outer.appendChild(getDOM({ text: '[' }));
         var isStart = true;
         for (var i = 0; i < obj.data.length; i++) {
           if (isStart) {
             isStart = false;
           } else {
             // append a ,
-            span = document.createElement('span');
-            span.textContent = ', '
-            outer.appendChild(span);
+            outer.appendChild(getDOM({ text: ', '} ));
           }
           outer.appendChild(getDOMRepr(obj.data[i]), false)
         }
-        span = document.createElement('span');
-        span.textContent = ']';
-        outer.appendChild(span);
+        outer.appendChild(getDOM({ text: ']' }));
         break;
+      // html object
       case 'html':
-        var span = document.createElement('span');
-        span.textContent = '<';
-        outer.appendChild(span);
-        span = document.createElement('span');
-        span.classList.add('tag');
-        outer.appendChild(span);
-        span.textContent = obj.data.tagName;
-        // attribures
+        outer.appendChild(getDOM({ text: '<' }))
+        outer.appendChild(getDOM({ 
+          text: obj.data.tagName,
+          className: 'tag'
+        }));
+        // attributes
         var attrs = obj.data.attrs;
-        console.log(attrs)
         if (attrs && attrs.length > 0) {
           for (var i = 0; i < attrs.length; i++) {
-            span = document.createElement('span');
-            span.classList.add('key');
-            span.textContent = ' ' + attrs[i].key;
-            outer.appendChild(span);
-            span = document.createElement('span');
-            span.textContent = '=';
-            outer.appendChild(span);
+            outer.appendChild(getDOM({ 
+              text: ' ' + attrs[i].key,
+              className: 'key'
+            }))
+            outer.appendChild(getDOM({ text: '=' }));
             outer.appendChild(getDOMRepr(attrs[i].value));
           }
         }
-        span = document.createElement('span');
-        span.textContent = '>';
-        outer.appendChild(span);
+        outer.appendChild(getDOM({ text: '>' }));
         // closing tag
-        span = document.createElement('span');
-        span.textContent = '</';
-        outer.appendChild(span);
-        span = document.createElement('span');
-        span.textContent = obj.data.tagName;
-        span.classList.add('tag');
-        outer.appendChild(span);
-        span = document.createElement('span');
-        span.textContent = '>';
-        outer.appendChild(span);
+        outer.appendChild(getDOM({ text: '</' }));
+        outer.appendChild(getDOM({ 
+          text: obj.data.tagName,
+          className: 'tag'
+        }));
+        outer.appendChild(getDOM({ text: '>'}));
         break;
+
+      case 'empty':
+        outer.appendChild(getDOM({ text: ' ' }));
     }
     return outer;
   };
@@ -289,6 +246,13 @@ var c = (function() {
     debug: function() {
       init();
       this.log(comingSoon);
+    },
+    'break': function() {
+      o.classList.add('break');
+      init();
+      var empty = { dataType: 'empty' };
+      var ele = getDOMRepr(empty, true);
+      o.appendChild(ele);
     }
   }
 })();

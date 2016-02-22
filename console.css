@@ -8,8 +8,18 @@
 }
 
 .console > div {
-  padding: 4px 8px;
+  padding: 4px 8px 4px 0;
   border-top: 1px solid #CFD6D9;
+}
+
+.console > div:before {
+  content: '\25B8';
+  color: #CCC;
+  padding-right: 8px;
+}
+
+.console > .arrow {
+  padding-right: 4px;
 }
 
 .console > div:last-child {
@@ -64,8 +74,14 @@
   color: #F1A244;
 }
 
+.console .empty {
+  white-space: pre-wrap;
+}
+
 .console .warn {}
 
 .console .info {}
 
 .console .debug {}
+
+.console .break {}
