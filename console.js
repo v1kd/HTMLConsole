@@ -5,14 +5,17 @@
  * stack overflow
  */
 var c = (function() {
-  var o = document.getElementsByClassName('console')[0];
-  var callStack = 0;
+  var o = document.getElementsByClassName('console')[0]
+  var groupstack = [o]
+  groupstack.peek = function() {
+    return this[this.length - 1]
+  }
   var getType = function(obj) {
-    var type = typeof obj;
+    var type = typeof obj
     var op = {
       data: '',
       dataType: 'string'
-    };
+    }
     switch (type) {
       case 'number':
       case 'string':
@@ -21,21 +24,20 @@ var c = (function() {
         op = {
           data: obj + '',
           dataType: type
-        };
-        break;
+        }
+        break
       case 'object':
-        callStack++;
         if (obj === null) {
           op = {
             data: 'null',
             dataType: 'null'
           }
-          break;
+          break
         }
         // check if html element
         if (obj instanceof HTMLElement) {
-          var htmlAttrs = obj.attributes;
-          var attrs = [];
+          var htmlAttrs = obj.attributes
+          var attrs = []
           if (htmlAttrs && htmlAttrs.length > 0) {
             for (var i = 0; i < htmlAttrs.length; i++) {
               attrs.push({
@@ -44,7 +46,7 @@ var c = (function() {
                   dataType: 'string',
                   data: htmlAttrs[i].nodeValue
                 }
-              });
+              })
             }
           }
 
@@ -54,205 +56,223 @@ var c = (function() {
               attrs: attrs
             },
             dataType: 'html'
-          };
-          console.log(attrs)
-          break;
+          }
+          break
         }
         // if array - doesnt work for all of them - function arguments
         if (typeof obj.length === 'number' && typeof obj.splice === 'function') {
           op = {
             data: [],
             dataType: 'array'
-          };
-          for (var i = 0; i < obj.length; i++) {
-            op.data.push(getType(obj[i]));
           }
-          break;
+          for (var i = 0; i < obj.length; i++) {
+            op.data.push(getType(obj[i]))
+          }
+          break
         }
         op = {
           data: {},
           dataType: 'object',
           constructor: 'Object'
-        };
+        }
         
-        var constructor = obj.constructor;
+        var constructor = obj.constructor
         if (typeof constructor === 'function' && constructor.name) {
-          op.constructor = constructor.name;
+          op.constructor = constructor.name
         }
         for (var i in obj) {
-          op.data[i] = getType(obj[i]);
+          op.data[i] = getType(obj[i])
         }
-        break;
+        break
       case 'function':
         op = {
           data: obj.name,
           dataType: 'function'
-        };
-        break;
+        }
+        break
     }
     return op
-  };
+  }
 
   var getDOM = function(options) {
     // by default create span element
-    var tag = options.tag || 'span';
-    var text = options.text;
-    var className =  options.className;
+    var tag = options.tag || 'span'
+    var text = options.text
+    var className =  options.className
     var ele = document.createElement(tag)
     if (typeof text !== 'undefined') {
-      ele.textContent = text;
+      ele.textContent = text
     }
 
     if (className) {
       var arr
       if (typeof className === 'string') {
-        arr = [];
-        arr.push(className);
+        arr = []
+        arr.push(className)
       } else {
         // classname is array
-        arr = className;
+        arr = className
       }
-      DOMTokenList.prototype.add.apply(ele.classList, arr);
+      DOMTokenList.prototype.add.apply(ele.classList, arr)
     }
 
-    return ele;
+    return ele
   }
 
   var getDOMRepr = function(obj, isRoot) {
     var domType = 'div'
-    if (!isRoot)
+    var classname = 'root'
+    if (!isRoot) {
       domType = 'span'
-    var outer = getDOM({ 'tag': domType });
-    outer.classList.add(obj.dataType);
+      classname = 'child'
+    }
+    var outer = getDOM({ 'tag': domType, className: classname })
+    outer.classList.add(obj.dataType)
     switch (obj.dataType) {
       case 'number':
       case 'undefined':
       case 'null':
       case 'boolean':
-        outer.textContent = obj.data;
-        break;
+        outer.textContent = obj.data
+        break
       case 'string':
-        outer.appendChild(getDOM({ text: '"' }));
+        outer.appendChild(getDOM({ text: '"' }))
         outer.appendChild(getDOM({
           text: obj.data,
           className: 'value'
-        }));
+        }))
         outer.appendChild(getDOM({ text: '"' }))
-        break;
+        break
       case 'function':
         outer.appendChild(getDOM({
           text: 'function ',
           className: 'keyword'
-        }));
-        outer.appendChild(getDOM({ text: obj.data + '() {}' }));
-        break;
+        }))
+        outer.appendChild(getDOM({ text: obj.data + '() {}' }))
+        break
       case 'object':
         outer.appendChild(getDOM({
           text: obj.constructor + ' ',
           className: 'constructor'
-        }));
-        outer.appendChild(getDOM({ text: '{' }));
+        }))
+        outer.appendChild(getDOM({ text: '{' }))
 
-        var isStart = true;
+        var isStart = true
         for (var i in obj.data) {
           if (isStart) {
-            isStart = false;
+            isStart = false
           } else {
-            outer.appendChild(getDOM({ text: ', ' }));
+            outer.appendChild(getDOM({ text: ', ' }))
           }
           outer.appendChild(getDOM({
             text: i,
             className: 'key'
-          }));
-          outer.appendChild(getDOM({ text: ': ' }));
+          }))
+          outer.appendChild(getDOM({ text: ': ' }))
           outer.appendChild(getDOMRepr(obj.data[i]), false)
         }
-        outer.appendChild(getDOM({ text: '}' }));
-        break;
+        outer.appendChild(getDOM({ text: '}' }))
+        break
       // array object
       case 'array':
-        outer.appendChild(getDOM({ text: '[' }));
-        var isStart = true;
+        outer.appendChild(getDOM({ text: '[' }))
+        var isStart = true
         for (var i = 0; i < obj.data.length; i++) {
           if (isStart) {
-            isStart = false;
+            isStart = false
           } else {
             // append a ,
-            outer.appendChild(getDOM({ text: ', '} ));
+            outer.appendChild(getDOM({ text: ', '} ))
           }
           outer.appendChild(getDOMRepr(obj.data[i]), false)
         }
-        outer.appendChild(getDOM({ text: ']' }));
-        break;
+        outer.appendChild(getDOM({ text: ']' }))
+        break
       // html object
       case 'html':
         outer.appendChild(getDOM({ text: '<' }))
         outer.appendChild(getDOM({ 
           text: obj.data.tagName,
           className: 'tag'
-        }));
+        }))
         // attributes
-        var attrs = obj.data.attrs;
+        var attrs = obj.data.attrs
         if (attrs && attrs.length > 0) {
           for (var i = 0; i < attrs.length; i++) {
             outer.appendChild(getDOM({ 
               text: ' ' + attrs[i].key,
               className: 'key'
             }))
-            outer.appendChild(getDOM({ text: '=' }));
-            outer.appendChild(getDOMRepr(attrs[i].value));
+            outer.appendChild(getDOM({ text: '=' }))
+            outer.appendChild(getDOMRepr(attrs[i].value))
           }
         }
-        outer.appendChild(getDOM({ text: '>' }));
+        outer.appendChild(getDOM({ text: '>' }))
         // closing tag
-        outer.appendChild(getDOM({ text: '</' }));
+        outer.appendChild(getDOM({ text: '</' }))
         outer.appendChild(getDOM({ 
           text: obj.data.tagName,
           className: 'tag'
-        }));
-        outer.appendChild(getDOM({ text: '>'}));
-        break;
+        }))
+        outer.appendChild(getDOM({ text: '>'}))
+        break
 
       case 'empty':
-        outer.appendChild(getDOM({ text: ' ' }));
+        outer.appendChild(getDOM({ text: ' ' }))
     }
-    return outer;
-  };
+    return outer
+  }
+
+  var getOuterDOM = function() {
+    var o = document.createElement('div')
+    o.classList.add('group')
+    var outer = groupstack.peek()
+    outer.appendChild(o)
+    return o
+  }
 
   var init = function() {
-    // init all the values
-    callStack = 0;
-  };
+  }
   var comingSoon = 'Coming Soon!!'
   return {
     log: function(obj) {
-      init();
-      var consoleObj = getType(obj);
-      var ele = getDOMRepr(consoleObj, true);
+      init()
+      var consoleObj = getType(obj)
+      var ele = getDOMRepr(consoleObj, true)
+      var o = groupstack.peek()
       o.appendChild(ele)
     },
     clear: function() {
-      init();
-      o.innerHTML = '';
+      init()
+      o.innerHTML = ''
     },
     warn: function() {
-      init();
-      this.log(comingSoon);
+      init()
+      this.log(comingSoon)
     },
     info: function() {
-      init();
-      this.log(comingSoon);
+      init()
+      this.log(comingSoon)
     },
     debug: function() {
-      init();
-      this.log(comingSoon);
+      init()
+      this.log(comingSoon)
+    },
+    group: function() {
+      var otop = getOuterDOM()
+      groupstack.push(otop)
+    },
+    groupEnd: function() {
+      if (groupstack.length > 1) {
+        groupstack.pop()
+      }
     },
     'break': function() {
-      o.classList.add('break');
-      init();
-      var empty = { dataType: 'empty' };
-      var ele = getDOMRepr(empty, true);
-      o.appendChild(ele);
+      o.classList.add('break')
+      init()
+      var empty = { dataType: 'empty' }
+      var ele = getDOMRepr(empty, true)
+      o.appendChild(ele)
     }
   }
-})();
+})()

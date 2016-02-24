@@ -94,6 +94,30 @@
         c.log(parseInt('hello'))
         c.break()
 
+        c.log('>> Group')
+        c.group()
+
+        c.log('>> Inner group')
+        c.group()
+
+        c.log('>> Inner Inner group')
+        c.group()
+
+        c.log('Over here')
+        
+        c.log('<< Now this group is ending')
+        c.groupEnd()
+        
+        c.log('<< Even this one')
+        c.groupEnd()
+
+        c.log('<< Finally the one which started')
+        c.groupEnd()
+
+        c.log('Phew all of them are done!!')
+        c.break()
+
+
         c.log('>> warning')
         c.warn('Warning')
         c.break()
