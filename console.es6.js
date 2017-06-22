@@ -189,7 +189,6 @@ const logger = (function() {
    */
   function getLog(domEle) {
     return function(...args) {
-      console.log(args);
       const multiArgEle = createElement('', {
         tag: 'div', className: 'multi-args'
       });
