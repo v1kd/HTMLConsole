@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Console Test</title>
+        <link rel="stylesheet" href="console.css">
+    </head>
+    <body class="body" id="body">
+        <div>
+            <button id="clear">Clear</button>
+        </div>
+        <div id="console" class="console"></div>
+        <script src="consolees6.js"></script>
+        <script>
+        // to clear the console log
+        document.querySelector('#clear').addEventListener('click', function() {
+          c.clear();
+        })
+        var c = logger(document.querySelector('#console'));
+
+        var z = {
+          x: 'hello',
+          y: 'shdf shdf'
+        }
+        var x = undefined
+        var z = null
+
+        function Something() {};
+        var some = new Something();
+        c.log('>> Here comes a string:', 2)
+        c.log('this is a string');
+        c.break()
+
+        c.log('>> Here is a number');
+        c.log(23)
+        c.break()
+
+        c.log('>> true && false:')
+        c.log(true && false)
+        c.break()
+
+        c.log('>> This is a function');
+        c.log(Something)
+        c.break()
+
+        c.log('>> This is an object created from function `Something`')
+        c.log(some)
+        c.break()
+
+        c.log('>> Yay an array')
+        c.log([1, 2, {
+          x: 3,
+          func: function Hello() {}
+        }])
+        c.break()
+
+        c.log('>> You are logging an Object')
+        c.log({
+          i: 23,
+          j: 34,
+          z: function() {}
+        })
+        c.break()
+
+        c.log('>> Not defined (undefined)')
+        c.log(undefined)
+        c.break()
+
+        c.log('>> The lord of the errors: NULL')
+        c.log(null)
+        c.break()
+
+        c.log('>> A complex object')
+        c.log({
+          a: 12,
+          b: true,
+          c: false,
+          d: [{
+            a: 'String',
+            func: function getA() {
+              return this.a;
+            },
+            nullAttr: null,
+            undef: undefined
+          }]
+        })
+        c.break()
+
+        c.log('>> HTML object')
+        c.log(document.body)
+        c.break()
+
+        c.log('>> Not a number')
+        c.log(parseInt('hello'))
+        c.break()
+
+        c.log('>> Group')
+        c.group()
+
+        c.log('>> Inner group')
+        c.group()
+
+        c.log('>> Inner Inner group')
+        c.group()
+
+        c.log('Over here')
+        
+        c.log('<< Now this group is ending')
+        c.groupEnd()
+        
+        c.log('<< Even this one')
+        c.groupEnd()
+
+        c.log('<< Finally the one which started')
+        c.groupEnd()
+
+        c.log('Phew all of them are done!!')
+        c.break()
+
+
+        c.log('>> warning')
+        c.warn('Warning')
+        c.break()
+
+        c.log('>> Degugging')
+        c.debug('Debugging.......')
+        
+        </script>
+    </body>
+</html>

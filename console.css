@@ -15,24 +15,27 @@
 .console .group > .root:last-child {
   border-bottom: 0;
 }
-  
-.console .root {
-  padding: 4px 8px 4px 0;
+
+.console .multi-args {
   border-top: 1px solid #CFD6D9;
 }
 
-.console .root:before {
+.console .multi-args:before {
   content: '\25B8';
   color: #CCC;
   padding-right: 8px;
 }
 
-.console .arrow {
-  padding-right: 4px;
+.console > .multi-args .root {
+  display: inline-block;
 }
 
-.console .root:last-child {
-  border-bottom: 1px solid #CFD6D9;
+.console .root {
+  padding: 4px 8px 4px 0;
+}
+
+.console .arrow {
+  padding-right: 4px;
 }
 
 .console .string {
