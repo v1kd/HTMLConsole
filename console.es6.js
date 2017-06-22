@@ -125,8 +125,8 @@ const logger = (function() {
     }
     // function
     else if (dataType === 'function') {
-      $add($('function ', { className: 'keyword' }));
-      $add($(data + '() {}'));
+      $add($('function', { className: 'keyword' }));
+      $add($((data.length > 0 ? ' ' + data : data) + '() {}'));
     }
     // object
     else if (dataType === 'object') {
