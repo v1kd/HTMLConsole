@@ -30,6 +30,10 @@
         c.log('this is a string');
         c.break()
 
+        c.log('>> Function with no name');
+        c.log(function() {});
+        c.break();
+
         c.log('>> Here is a number');
         c.log(23)
         c.break()
@@ -40,11 +44,15 @@
 
         c.log('>> This is a function');
         c.log(Something)
-        c.break()
+        c.break();
 
         c.log('>> This is an object created from function `Something`')
         c.log(some)
-        c.break()
+        c.break();
+
+        c.log('>> Simple array');
+        c.log([1, 2, 3, 4]);
+        c.break();
 
         c.log('>> Yay an array')
         c.log([1, 2, {
@@ -52,6 +60,9 @@
           func: function Hello() {}
         }])
         c.break()
+
+        c.log('>> Multiple objects');
+        c.log(1, 2, function hello() {}, {parent: {child: {grandChild: 1}, new: 'hello'}});
 
         c.log('>> You are logging an Object')
         c.log({

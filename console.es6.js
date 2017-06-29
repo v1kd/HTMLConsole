@@ -1,5 +1,46 @@
 const logger = (function() {
 
+  // Quick and dirty implementation of hyperScript
+  // https://www.youtube.com/watch?v=LY6y3HbDVmg
+  /**
+   * 
+   * @param {String} nodeName DOM node name
+   * @param {Object} attributes DOM properties
+   * @param {String|Object} children
+   */
+  function h(nodeName, attributes, ...children) {
+    nodeName = String(nodeName);
+    attributes = typeof attributes === 'object' && 
+      attributes !== null ? attributes : {};
+    return { nodeName, attributes, children };
+  }
+
+  /**
+   * Create DOM from hyper V object
+   * @param {Object} vnode Virtual dom object 
+   */
+  function render(vnode) {
+    if (typeof vnode === 'string') {
+      return document.createTextNode(vnode);
+    }
+
+    const node = document.createElement(vnode.nodeName);
+    if (vnode.attributes) {
+      const attrs = vnode.attributes;
+      Object.keys(attrs).forEach(
+        key => node.setAttribute(key, attrs[key]
+      ));
+    }
+
+    vnode.children.forEach(
+      vn => node.appendChild(render(vn))
+    );
+    return node;
+  }
+
+  window.render = render;
+  window.h = h;
+
   /**
    * Parse object to console understandable object
    * @param {Object} obj
@@ -22,7 +63,7 @@ const logger = (function() {
           tagName: typeof t === 'string' ? t.toLowerCase() : '',
           attributes: [...obj.attributes].map((attr) => ({
             key: attr.nodeName,
-            value: { dataType: 'string', data: attr.nodeValue }
+            value: { dataType: 'string', data: String(attr.nodeValue) }
           }))
         }
       };
@@ -75,112 +116,126 @@ const logger = (function() {
   }
 
   /**
-   * Create a DOM element
-   * @param {String} text
-   * @param {String} options.tag
-   * @param {String|Array} options.className
+   * Parsed console object
+   * @param {ParsedConsoleObj} obj
+   * @return {Object}
    */
-  function createElement(text = '', options = {}) {
-    const { tag = 'span', className = '' } = options;
-    const ele = document.createElement(tag);
-    ele.textContent = text;
-    if (className) {
-      const classList = typeof className === 'string' ?
-      [className] :
-      className;
-      ele.classList.add(...classList);
-    }
-    
-    return ele;
+  function vnodeString({ data }, shouldRenderQuotes = true) {
+    const className = shouldRenderQuotes ?
+      'string with-quotes' : 
+      'string';
+    return h('span', { class: className },
+      h('span', { class: 'value' }, data)
+    );
   }
 
   /**
-   * Create DOM representation of parsed JS object
-   * @param {ParsedConsoleObj} obj 
-   * @param {Boolean} isRoot 
+   * Create vnode for undefined, number, null, boolean
+   * @param {ParsedConsoleObj} obj
+   * @return {Object}
    */
-  function createOuterElement(obj, isRoot = false) {
-    const $ = createElement;
-    const { dataType, data } = obj;
-    const element = $('', {
-      tag: isRoot ? 'div' : 'span',
-      className: isRoot ? 'root' : 'child'
-    });
+  function vnodeOther({ dataType, data }) {
+    return h('span', { class: dataType }, data);
+  }
 
-    const $add = (...$values) => (
-      $values.forEach($val => element.appendChild($val))
+  /**
+   * Create vnode for Function
+   * @param {ParsedConsoleObj} obj
+   * @return {Object}
+   */
+  function vnodeFunction({ data }) {
+    return h('span', { class: 'function' },
+      h('span', { class: 'name' }, data)
     );
+  }
 
-    // add data type as class to the element
-    element.classList.add(dataType);
-    if (
-      dataType === 'number' ||
-      dataType === 'undefined' ||
-      dataType === 'null' ||
-      dataType === 'boolean'
-    ) element.textContent = data;
-    // string
-    else if (dataType ===  'string') {
-      $add($('"'), $(data, { className: 'value' }), $('"'));
-    }
-    // function
-    else if (dataType === 'function') {
-      $add($('function', { className: 'keyword' }));
-      $add($((data.length > 0 ? ' ' + data : data) + '() {}'));
-    }
-    // object
-    else if (dataType === 'object') {
-      $add($(obj.constructor + ' ', { className: 'constructor' }), $('{'));
-      let isStart = true;
-      Object.keys(data).forEach((key, index) => {
-        const val = data[key];
-        if (isStart) {
-          isStart = false; 
-        } else {
-          $add($(', '));
-        }
-        $add(
-          $(key, { className: 'key' }),
-          $(': '),
-          createOuterElement(data[key], false)
-        );
-      });
-      $add($('}'));
-    }
-    // array
-    else if (dataType === 'array') {
-      $add($('['));
-      let isStart = true;
-      data.forEach((val) => {
-        if (isStart) {
-          isStart = false;
-        } else {
-          $add($(', '));
-        }
-        $add(createOuterElement(val, false));
-      });
-      $add($(']'));
-    }
-    // html
-    else if (dataType === 'html') {
-      $add($('<'));
-      $add($(data.tagName, { className: 'tag' }));
-      data.attributes.forEach(({ key, value }) => {
-        $add($(' ' + key, { className: 'key' }));
-        $add($('='));
-        $add(createOuterElement(value));
-      });
-      $add($('>'));
-      $add($('</'));
-      $add($(data.tagName, { className: 'tag' }));
-      $add($('>'));
-    }
-    // empty
-    else {
-      $add($(' '));
-    }
+  /**
+   * Create vnode for Function
+   * @param {ParsedConsoleObj} obj 
+   * @return {Object}
+   */
+  function vnodeObject(obj) {
+    const { constructor, data } = obj;
+    return h('span', { class: 'object' },
+      h('span', { class: 'constructor' }, constructor),
+      h('span', { class: 'body' },
+        ...Object.keys(data).map((key) => (
+          h('span', { class: 'pair' },
+            h('span', { class: 'key' }, key),
+            vnodeGeneric(data[key])
+          )
+        ))
+      )
+    );
+  }
 
-    return element;
+  /**
+   * Create vnode for array
+   * @param {ParsedConsoleObj} obj 
+   * @return {Object}
+   */
+  function vnodeArray({ data }) {
+    return h('span', { class: 'array' },
+      ...data.map(val => (
+        h('span', { class: 'array-value' },
+          vnodeGeneric(val)
+        )
+      ))
+    );
+  }
+
+  /**
+   * Create vnode for HTML element
+   * @param {ParsedConsoleObj} obj 
+   * @return {Object}
+   */
+  function vnodeHTML({ data }) {
+    const { tagName, attributes } = data;
+    return h('span', { class: 'html' },
+      h('span', { class: 'tag' }, tagName),
+      ...attributes.map(({ key, value }) => (
+        h('span', { class: 'attributes'},
+          h('span', { class: 'key' }, key),
+          vnodeGeneric(value)
+        )
+      ))
+    );
+  }
+
+  /**
+   * Create vnode for Generic obj
+   * @param {ParsedConsoleObj} obj 
+   */
+  function vnodeGeneric(obj) {
+    const { dataType } = obj;
+    let vnode;
+
+    switch (dataType) {
+      case 'number':
+      case 'undefined':
+      case 'null':
+      case 'boolean': 
+        vnode = vnodeOther(obj);
+        break;
+      case 'string':
+        vnode = vnodeString(obj);
+        break;
+      case 'function':
+        vnode = vnodeFunction(obj);
+        break;
+      case 'object':
+        vnode = vnodeObject(obj);
+        break;
+      case 'array':
+        vnode = vnodeArray(obj);
+        break;
+      case 'html':
+        vnode = vnodeHTML(obj);
+        break;
+      default:
+        vnode = h('span', null, '');
+    }
+    return vnode;
   }
 
   /**
@@ -189,29 +244,29 @@ const logger = (function() {
    */
   function getLog(domEle) {
     return function(...args) {
-      const multiArgEle = createElement('', {
-        tag: 'div', className: 'multi-args'
-      });
-      args.forEach((arg) => multiArgEle.appendChild(
-        createOuterElement(parse(arg), true)
-      ));
-      // const firstObj = args[0];
-      // domEle.appendChild(
-      //   createOuterElement(parse(firstObj), true)
-      // );
-      domEle.appendChild(multiArgEle);
+      const node = render(
+        h('div', { class: 'multi-args' },
+          ...args.map(arg => h('span', { class: 'root' },
+            vnodeGeneric(parse(arg))
+          ))
+        )
+      );
+      domEle.appendChild(node);
     }
   }
 
+  /**
+   * Get break function
+   * @param {HTMLElement} domEle 
+   */
   function getBreak(domEle) {
     return function() {
-      const multiArgEle = createElement('', {
-        tag: 'div', className: 'multi-args'
-      });
-      multiArgEle.appendChild(
-        createOuterElement({ dataType: 'empty' }, true)
+      const node = render(
+        h('div', { class: 'multi-args' }, 
+          vnodeGeneric({ dataType: 'empty' }, true)
+        )
       );
-      domEle.appendChild(multiArgEle);
+      domEle.appendChild(node);
     };
   }
 
