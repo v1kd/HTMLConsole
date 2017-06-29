@@ -38,9 +38,6 @@ const logger = (function() {
     return node;
   }
 
-  window.render = render;
-  window.h = h;
-
   /**
    * Parse object to console understandable object
    * @param {Object} obj
