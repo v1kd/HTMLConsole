@@ -28,8 +28,8 @@ const logger = (function() {
     if (vnode.attributes) {
       const attrs = vnode.attributes;
       Object.keys(attrs).forEach(
-        key => node.setAttribute(key, attrs[key]
-      ));
+        key => node.setAttribute(key, attrs[key])
+      );
     }
 
     vnode.children.forEach(
