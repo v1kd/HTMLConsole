@@ -1,6 +1,6 @@
 const logger = (function() {
 
-  // Quick and dirty implementation of hyperScript
+  // Quick implementation of hyperScript
   // https://www.youtube.com/watch?v=LY6y3HbDVmg
   /**
    * 
