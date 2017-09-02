@@ -4,7 +4,7 @@
   margin: 0;
   padding: 0;
   font-size: 12px;
-  font-family: 'Consolas', 'Menlo', 'Courier new';
+  font-family: 'Fira Code', 'SF Mono', 'Consolas', 'Menlo', 'Courier new';
 }
 
 .console .group {
@@ -15,28 +15,46 @@
 .console .group > .root:last-child {
   border-bottom: 0;
 }
-  
-.console .root {
-  padding: 4px 8px 4px 0;
+
+.console .multi-args {
   border-top: 1px solid #CFD6D9;
+  padding: 4px 8px 4px 0;
 }
 
-.console .root:before {
+.console .multi-args::before {
   content: '\25B8';
   color: #CCC;
   padding-right: 8px;
+}
+
+.console > .multi-args > .root {
+  display: inline;
+}
+
+.console > .multi-args > .root::after {
+  /*padding: 4px 8px 4px 0;*/
+  content: ' ';
+}
+
+.console > .multi-args > .root:last-child::after {
+  /*padding: 4px 8px 4px 0;*/
+  content: '';
 }
 
 .console .arrow {
   padding-right: 4px;
 }
 
-.console .root:last-child {
-  border-bottom: 1px solid #CFD6D9;
-}
-
 .console .string {
   color: #000;
+}
+
+.console .string.with-quotes::before {
+  content: '"';
+}
+
+.console .string.with-quotes::after {
+  content: '"';
 }
 
 .console .string > .value {
@@ -47,6 +65,16 @@
   color: #ED5C65;
 }
 
+.console .function::before {
+  color: #A151D2;
+  content: 'function';
+}
+
+.console .function::after {
+  color: #000;
+  content: '() {}';
+}
+
 .console .function > .keyword {
   color: #A151D2;
 }
@@ -55,12 +83,60 @@
   color: #000;
 }
 
-.console .object > .key {
+.console .function > .name::before {
+  content: ' ';
+}
+
+.console .function > .name:empty {
+  display: none;
+}
+
+.console .object > .body::before {
   color: #000;
+  content: '{';
+}
+
+.console .object > .body::after {
+  color: #000;
+  content: '}';
 }
 
 .console .object > .constructor {
   color: #F1A244;
+}
+
+.console .object > .constructor::after {
+  content: ' ';
+}
+
+.console .object > .body > .pair::after {
+  color: #000;
+  content: ', ';
+}
+
+.console .object > .body > .pair:last-child::after {
+  content: '';
+}  
+
+.console .object > .body > .pair > .key::after {
+  color: #000;
+  content: ': ';
+}
+
+.console .array::before {
+  content: '['
+}
+
+.console .array::after {
+  content: ']'
+}
+
+.console .array > .array-value::after {
+  content: ', '
+}
+
+.console .array > .array-value:last-child::after {
+  content: '';
 }
 
 .console .undefined {
@@ -75,12 +151,31 @@
   color: #3424A0;
 }
 
+.console .html::before {
+  color: #000;
+  content: '<';
+}
+
+.console .html::after {
+  color: #000;
+  content: '/>';
+}
+
 .console .html > .tag {
   color: #2795ee;
 }
 
-.console .html > .key {
+.console .html > .attributes::before {
+  content: ' ';
+}
+
+.console .html > .attributes > .key {
   color: #F1A244;
+}
+
+.console .html > .attributes > .key::after {
+  color: #000;
+  content: '=';
 }
 
 .console .empty {

@@ -1,278 +1,292 @@
-/**
- * Console log html version.
- * This would display all the data in the html
- * It does not work when the elements have parent and then child
- * stack overflow
- */
-var c = (function() {
-  var o = document.getElementsByClassName('console')[0]
-  var groupstack = [o]
-  groupstack.peek = function() {
-    return this[this.length - 1]
-  }
-  var getType = function(obj) {
-    var type = typeof obj
-    var op = {
-      data: '',
-      dataType: 'string'
-    }
-    switch (type) {
-      case 'number':
-      case 'string':
-      case 'undefined':
-      case 'boolean':
-        op = {
-          data: obj + '',
-          dataType: type
-        }
-        break
-      case 'object':
-        if (obj === null) {
-          op = {
-            data: 'null',
-            dataType: 'null'
-          }
-          break
-        }
-        // check if html element
-        if (obj instanceof HTMLElement) {
-          var htmlAttrs = obj.attributes
-          var attrs = []
-          if (htmlAttrs && htmlAttrs.length > 0) {
-            for (var i = 0; i < htmlAttrs.length; i++) {
-              attrs.push({
-                key: htmlAttrs[i].nodeName,
-                value: {
-                  dataType: 'string',
-                  data: htmlAttrs[i].nodeValue
-                }
-              })
-            }
-          }
+const logger = (function() {
 
-          op = {
-            data: {
-              tagName: obj.tagName ? obj.tagName.toLowerCase() : '',
-              attrs: attrs
-            },
-            dataType: 'html'
-          }
-          break
-        }
-        // if array - doesnt work for all of them - function arguments
-        if (typeof obj.length === 'number' && typeof obj.splice === 'function') {
-          op = {
-            data: [],
-            dataType: 'array'
-          }
-          for (var i = 0; i < obj.length; i++) {
-            op.data.push(getType(obj[i]))
-          }
-          break
-        }
-        op = {
-          data: {},
-          dataType: 'object',
-          constructor: 'Object'
-        }
-        
-        var constructor = obj.constructor
-        if (typeof constructor === 'function' && constructor.name) {
-          op.constructor = constructor.name
-        }
-        for (var i in obj) {
-          op.data[i] = getType(obj[i])
-        }
-        break
-      case 'function':
-        op = {
-          data: obj.name,
-          dataType: 'function'
-        }
-        break
-    }
-    return op
+  // Quick implementation of hyperScript
+  // https://www.youtube.com/watch?v=LY6y3HbDVmg
+  /**
+   * 
+   * @param {String} nodeName DOM node name
+   * @param {Object} attributes DOM properties
+   * @param {String|Object} children
+   */
+  function h(nodeName, attributes, ...children) {
+    nodeName = String(nodeName);
+    attributes = typeof attributes === 'object' && 
+      attributes !== null ? attributes : {};
+    return { nodeName, attributes, children };
   }
 
-  var getDOM = function(options) {
-    // by default create span element
-    var tag = options.tag || 'span'
-    var text = options.text
-    var className =  options.className
-    var ele = document.createElement(tag)
-    if (typeof text !== 'undefined') {
-      ele.textContent = text
+  /**
+   * Create DOM from hyper V object
+   * @param {Object} vnode Virtual dom object 
+   */
+  function render(vnode) {
+    if (typeof vnode === 'string') {
+      return document.createTextNode(vnode);
     }
 
-    if (className) {
-      var arr
-      if (typeof className === 'string') {
-        arr = []
-        arr.push(className)
-      } else {
-        // classname is array
-        arr = className
-      }
-      DOMTokenList.prototype.add.apply(ele.classList, arr)
+    const node = document.createElement(vnode.nodeName);
+    if (vnode.attributes) {
+      const attrs = vnode.attributes;
+      Object.keys(attrs).forEach(
+        key => node.setAttribute(key, attrs[key])
+      );
     }
 
-    return ele
+    vnode.children.forEach(
+      vn => node.appendChild(render(vn))
+    );
+    return node;
   }
 
-  var getDOMRepr = function(obj, isRoot) {
-    var domType = 'div'
-    var classname = 'root'
-    if (!isRoot) {
-      domType = 'span'
-      classname = 'child'
+  /**
+   * Parse object to console understandable object
+   * @param {Object} obj
+   * @return {String} obj.dataType
+   * @return {Object} obj.data
+   * @return {String} obj.constructor? If it is an object
+   */
+  function parseObject(obj) {
+    // null
+    if (obj === null) {
+      return { data: 'null', dataType: 'null' };
     }
-    var outer = getDOM({ 'tag': domType, className: classname })
-    outer.classList.add(obj.dataType)
-    switch (obj.dataType) {
+
+    // HTMLElement
+    if (obj instanceof window.HTMLElement) {
+      const { tagName: t } = obj;
+      return {
+        dataType: 'html',
+        data: {
+          tagName: typeof t === 'string' ? t.toLowerCase() : '',
+          attributes: [...obj.attributes].map((attr) => ({
+            key: attr.nodeName,
+            value: { dataType: 'string', data: String(attr.nodeValue) }
+          }))
+        }
+      };
+    }
+
+    // Array
+    if (
+      typeof obj.length === 'number' &&
+      typeof obj.splice === 'function'
+    ) {
+      return { dataType: 'array', data: obj.map((val) => parse(val)) };
+    }
+
+    // Object
+    return {
+      dataType: 'object',
+      constructor: (
+        typeof obj.constructor === 'function' &&
+        typeof obj.constructor.name === 'string'
+      ) ? obj.constructor.name : 'Object',
+      data: Object.keys(obj).reduce((o, prop) => {
+        o[prop] = parse(obj[prop]);
+        return o;
+      }, {})
+    };
+  }
+  
+  /**
+   * To console understandable object
+   * @param {*} obj 
+   * @return {String} obj.dataType
+   * @return {Object} obj.data
+   */
+  function parse(obj) {
+    const type = typeof obj;
+    if (
+      type === 'number' ||
+      type === 'undefined' ||
+      type === 'string' ||
+      type === 'boolean'
+    ) {
+      return { dataType: type, data: '' + obj };
+    }
+    // Object
+    if (type === 'object') return parseObject(obj);
+    // function
+    if (type === 'function') return { dataType: type, data: obj.name };
+
+    return { dataType: 'string', data: '' };
+  }
+
+  /**
+   * Parsed console object
+   * @param {ParsedConsoleObj} obj
+   * @return {Object}
+   */
+  function vnodeString({ data }, shouldRenderQuotes = true) {
+    const className = shouldRenderQuotes ?
+      'string with-quotes' : 
+      'string';
+    return h('span', { class: className },
+      h('span', { class: 'value' }, data)
+    );
+  }
+
+  /**
+   * Create vnode for undefined, number, null, boolean
+   * @param {ParsedConsoleObj} obj
+   * @return {Object}
+   */
+  function vnodeOther({ dataType, data }) {
+    return h('span', { class: dataType }, data);
+  }
+
+  /**
+   * Create vnode for Function
+   * @param {ParsedConsoleObj} obj
+   * @return {Object}
+   */
+  function vnodeFunction({ data }) {
+    return h('span', { class: 'function' },
+      h('span', { class: 'name' }, data)
+    );
+  }
+
+  /**
+   * Create vnode for Function
+   * @param {ParsedConsoleObj} obj 
+   * @return {Object}
+   */
+  function vnodeObject(obj) {
+    const { constructor, data } = obj;
+    return h('span', { class: 'object' },
+      h('span', { class: 'constructor' }, constructor),
+      h('span', { class: 'body' },
+        ...Object.keys(data).map((key) => (
+          h('span', { class: 'pair' },
+            h('span', { class: 'key' }, key),
+            vnodeGeneric(data[key])
+          )
+        ))
+      )
+    );
+  }
+
+  /**
+   * Create vnode for array
+   * @param {ParsedConsoleObj} obj 
+   * @return {Object}
+   */
+  function vnodeArray({ data }) {
+    return h('span', { class: 'array' },
+      ...data.map(val => (
+        h('span', { class: 'array-value' },
+          vnodeGeneric(val)
+        )
+      ))
+    );
+  }
+
+  /**
+   * Create vnode for HTML element
+   * @param {ParsedConsoleObj} obj 
+   * @return {Object}
+   */
+  function vnodeHTML({ data }) {
+    const { tagName, attributes } = data;
+    return h('span', { class: 'html' },
+      h('span', { class: 'tag' }, tagName),
+      ...attributes.map(({ key, value }) => (
+        h('span', { class: 'attributes'},
+          h('span', { class: 'key' }, key),
+          vnodeGeneric(value)
+        )
+      ))
+    );
+  }
+
+  /**
+   * Create vnode for Generic obj
+   * @param {ParsedConsoleObj} obj 
+   */
+  function vnodeGeneric(obj) {
+    const { dataType } = obj;
+    let vnode;
+
+    switch (dataType) {
       case 'number':
       case 'undefined':
       case 'null':
-      case 'boolean':
-        outer.textContent = obj.data
-        break
+      case 'boolean': 
+        vnode = vnodeOther(obj);
+        break;
       case 'string':
-        outer.appendChild(getDOM({ text: '"' }))
-        outer.appendChild(getDOM({
-          text: obj.data,
-          className: 'value'
-        }))
-        outer.appendChild(getDOM({ text: '"' }))
-        break
+        vnode = vnodeString(obj);
+        break;
       case 'function':
-        outer.appendChild(getDOM({
-          text: 'function ',
-          className: 'keyword'
-        }))
-        outer.appendChild(getDOM({ text: obj.data + '() {}' }))
-        break
+        vnode = vnodeFunction(obj);
+        break;
       case 'object':
-        outer.appendChild(getDOM({
-          text: obj.constructor + ' ',
-          className: 'constructor'
-        }))
-        outer.appendChild(getDOM({ text: '{' }))
-
-        var isStart = true
-        for (var i in obj.data) {
-          if (isStart) {
-            isStart = false
-          } else {
-            outer.appendChild(getDOM({ text: ', ' }))
-          }
-          outer.appendChild(getDOM({
-            text: i,
-            className: 'key'
-          }))
-          outer.appendChild(getDOM({ text: ': ' }))
-          outer.appendChild(getDOMRepr(obj.data[i]), false)
-        }
-        outer.appendChild(getDOM({ text: '}' }))
-        break
-      // array object
+        vnode = vnodeObject(obj);
+        break;
       case 'array':
-        outer.appendChild(getDOM({ text: '[' }))
-        var isStart = true
-        for (var i = 0; i < obj.data.length; i++) {
-          if (isStart) {
-            isStart = false
-          } else {
-            // append a ,
-            outer.appendChild(getDOM({ text: ', '} ))
-          }
-          outer.appendChild(getDOMRepr(obj.data[i]), false)
-        }
-        outer.appendChild(getDOM({ text: ']' }))
-        break
-      // html object
+        vnode = vnodeArray(obj);
+        break;
       case 'html':
-        outer.appendChild(getDOM({ text: '<' }))
-        outer.appendChild(getDOM({ 
-          text: obj.data.tagName,
-          className: 'tag'
-        }))
-        // attributes
-        var attrs = obj.data.attrs
-        if (attrs && attrs.length > 0) {
-          for (var i = 0; i < attrs.length; i++) {
-            outer.appendChild(getDOM({ 
-              text: ' ' + attrs[i].key,
-              className: 'key'
-            }))
-            outer.appendChild(getDOM({ text: '=' }))
-            outer.appendChild(getDOMRepr(attrs[i].value))
-          }
-        }
-        outer.appendChild(getDOM({ text: '>' }))
-        // closing tag
-        outer.appendChild(getDOM({ text: '</' }))
-        outer.appendChild(getDOM({ 
-          text: obj.data.tagName,
-          className: 'tag'
-        }))
-        outer.appendChild(getDOM({ text: '>'}))
-        break
-
-      case 'empty':
-        outer.appendChild(getDOM({ text: ' ' }))
+        vnode = vnodeHTML(obj);
+        break;
+      default:
+        vnode = h('span', null, '');
     }
-    return outer
+    return vnode;
   }
 
-  var getOuterDOM = function() {
-    var o = document.createElement('div')
-    o.classList.add('group')
-    var outer = groupstack.peek()
-    outer.appendChild(o)
-    return o
-  }
-
-  var init = function() {
-  }
-  var comingSoon = 'Coming Soon!!'
-  return {
-    log: function(obj) {
-      init()
-      var consoleObj = getType(obj)
-      var ele = getDOMRepr(consoleObj, true)
-      var o = groupstack.peek()
-      o.appendChild(ele)
-    },
-    clear: function() {
-      init()
-      o.innerHTML = ''
-    },
-    warn: function() {
-      init()
-      this.log(comingSoon)
-    },
-    info: function() {
-      init()
-      this.log(comingSoon)
-    },
-    debug: function() {
-      init()
-      this.log(comingSoon)
-    },
-    group: function() {
-      var otop = getOuterDOM()
-      groupstack.push(otop)
-    },
-    groupEnd: function() {
-      if (groupstack.length > 1) {
-        groupstack.pop()
-      }
-    },
-    'break': function() {
-      o.classList.add('break')
-      init()
-      var empty = { dataType: 'empty' }
-      var ele = getDOMRepr(empty, true)
-      o.appendChild(ele)
+  /**
+   * Get log function
+   * @param {HTMLElement} domEle 
+   */
+  function getLog(domEle) {
+    return function(...args) {
+      const node = render(
+        h('div', { class: 'multi-args' },
+          ...args.map(arg => h('span', { class: 'root' },
+            vnodeGeneric(parse(arg))
+          ))
+        )
+      );
+      domEle.appendChild(node);
     }
   }
-})()
+
+  /**
+   * Get break function
+   * @param {HTMLElement} domEle 
+   */
+  function getBreak(domEle) {
+    return function() {
+      const node = render(
+        h('div', { class: 'multi-args' }, 
+          vnodeGeneric({ dataType: 'empty' }, true)
+        )
+      );
+      domEle.appendChild(node);
+    };
+  }
+
+  /**
+   * Get logger
+   * @param {HTMLElement} domEle HTML element where all logs are appended
+   */
+  return function logger(domEle) {
+    if (!(domEle instanceof window.HTMLElement))
+      throw TypeError('Required DOM element as first argument');
+
+    const log = getLog(domEle);
+    const brek = getBreak(domEle);
+    const noop = function() {};
+    
+    return {
+      log, 
+      debug: log,
+      info: log,
+      group: noop,
+      break: brek,
+      groupEnd: noop,
+      warn: noop
+    };
+  }
+}());
