@@ -12,4 +12,6 @@ Colors are inspired from JSFiddle
 
 ```javascript
 var console = logger(document.querySelector('#console'));
+
+console.log('hello world');
 ```
