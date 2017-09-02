@@ -5,16 +5,10 @@
         <link rel="stylesheet" href="console.css">
     </head>
     <body class="body" id="body">
-        <div>
-            <button id="clear">Clear</button>
-        </div>
-        <div class="console"></div>
+        <div id="console" class="console"></div>
         <script src="console.js"></script>
         <script>
-        // to clear the console log
-        document.querySelector('#clear').addEventListener('click', function() {
-          c.clear();
-        })
+        var c = logger(document.querySelector('#console'));
 
         var z = {
           x: 'hello',
@@ -25,9 +19,13 @@
 
         function Something() {};
         var some = new Something();
-        c.log('>> Here comes a string:')
+        c.log('>> Here comes a string:', 2)
         c.log('this is a string');
         c.break()
+
+        c.log('>> Function with no name');
+        c.log(function() {});
+        c.break();
 
         c.log('>> Here is a number');
         c.log(23)
@@ -39,11 +37,15 @@
 
         c.log('>> This is a function');
         c.log(Something)
-        c.break()
+        c.break();
 
         c.log('>> This is an object created from function `Something`')
         c.log(some)
-        c.break()
+        c.break();
+
+        c.log('>> Simple array');
+        c.log([1, 2, 3, 4]);
+        c.break();
 
         c.log('>> Yay an array')
         c.log([1, 2, {
@@ -51,6 +53,9 @@
           func: function Hello() {}
         }])
         c.break()
+
+        c.log('>> Multiple objects');
+        c.log(1, 2, function hello() {}, {parent: {child: {grandChild: 1}, new: 'hello'}});
 
         c.log('>> You are logging an Object')
         c.log({
